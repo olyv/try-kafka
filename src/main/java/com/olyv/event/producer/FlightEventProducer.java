@@ -1,7 +1,6 @@
 package com.olyv.event.producer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import net.datafaker.Faker;
+import com.olyv.entity.FlightStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,17 +23,11 @@ public class FlightEventProducer {
     private KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private EventsFactory eventsFactory;
 
-    private final Faker faker = new Faker();
-
-    public void generateEvents() throws Exception {
-
-        //generate single event
-        String key = faker.aviation().flight();
-        String value = objectMapper.writeValueAsString(faker.aviation().flightStatus());
-
-        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, key, value);
+    public void generateEvents() {
+        FlightStatus event = eventsFactory.generateEvent();
+        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, event.flight(), event.status());
         future.whenComplete((result, ex) -> {
             if (ex == null) {
                 LOG.debug("Produced event: {}", result.getProducerRecord());
