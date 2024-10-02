@@ -1,6 +1,6 @@
 package com.olyv.event.producer;
 
-import com.olyv.entity.FlightStatus;
+import com.olyv.event.FlightStatusEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +20,14 @@ public class FlightEventProducer {
     public String topic;
 
     @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+    private KafkaTemplate<String, FlightStatusEvent> kafkaTemplate;
 
     @Autowired
     private EventsFactory eventsFactory;
 
-    public void generateEvents() {
-        FlightStatus event = eventsFactory.generateEvent();
-        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, event.flight(), event.status());
+    public void generateEvents(String requestId) {
+        FlightStatusEvent event = eventsFactory.generateEvent();
+        CompletableFuture<SendResult<String, FlightStatusEvent>> future = kafkaTemplate.send(topic, requestId, event);
         future.whenComplete((result, ex) -> {
             if (ex == null) {
                 LOG.debug("Produced event: {}", result.getProducerRecord());

@@ -1,6 +1,6 @@
 package com.olyv.controller;
 
-import com.olyv.event.producer.FlightEventProducer;
+import com.olyv.service.FlightStatusService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -9,7 +9,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import static org.mockito.Mockito.*;
+import static com.olyv.data.TestData.REQUEST_ID;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,18 +21,21 @@ class GenerateEventsControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private FlightEventProducer eventProducer;
+    private FlightStatusService flightStatusService;
 
     @Test
-    public void shouldCallEventProducer() throws Exception {
+    public void shouldCallFlightStatusService() throws Exception {
         //Given
-        doNothing().when(eventProducer).generateEvents();
+        given(flightStatusService.generateEvent())
+                .willReturn(REQUEST_ID);
 
         //When
         ResultActions response = mockMvc.perform(MockMvcRequestBuilders.get("/generate"));
 
         //Then
         response.andExpect(status().isOk())
-                .andExpect(content().json("{\"response\":\"Sent request to generate flight event\"}"));
+                .andExpect(content().json("""
+                        {"response":"Request to generate flight event is filed with id %s"}
+                        """.formatted(REQUEST_ID)));
     }
 }
