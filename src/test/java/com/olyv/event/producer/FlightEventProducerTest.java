@@ -1,6 +1,6 @@
 package com.olyv.event.producer;
 
-import com.olyv.entity.FlightStatus;
+import com.olyv.event.FlightStatusEvent;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +14,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.concurrent.CompletableFuture;
 
+import static com.olyv.data.TestData.REQUEST_ID;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -43,7 +44,7 @@ public class FlightEventProducerTest {
     public void shouldSendEvent() {
         //Given
         given(eventsFactory.generateEvent())
-                .willReturn(new FlightStatus(KEY, VALUE));
+                .willReturn(new FlightStatusEvent(KEY, VALUE));
 
         CompletableFuture<SendResult<String, String>> completableFuture = new CompletableFuture<>();
         completableFuture.complete(new SendResult<>(new ProducerRecord<>(TOPIC, KEY, VALUE), null));
@@ -51,7 +52,7 @@ public class FlightEventProducerTest {
                 .willReturn(completableFuture);
 
         //When
-        eventProducer.generateEvents();
+        eventProducer.generateEvents(REQUEST_ID);
 
         //Then
         verify(kafkaTemplate).send(TOPIC, KEY, VALUE);

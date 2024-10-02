@@ -31,11 +31,24 @@ services:
       - zookeper
 
 
+  mongo-db:
+    image: mongo
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    depends_on:
+      - kafka
+
+
   java-app:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: java-app
     ports:
       - "8080:8080"
     depends_on:
-      - kafka
+      - mongo-db
